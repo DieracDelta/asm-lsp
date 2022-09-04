@@ -1,7 +1,7 @@
 {
-  "name": "tree-sitter-YOUR-LANGUAGE-NAME",
+  "name": "tree-sitter-riscvasm",
   "version": "0.0.1",
-  "description": "YOUR-LANGUAGE-NAME grammar for tree-sitter",
+  "description": "riscvasm grammar for tree-sitter",
   "main": "bindings/node",
   "keywords": [
     "parsing",
@@ -15,5 +15,15 @@
   },
   "scripts": {
     "test": "tree-sitter test"
-  }
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.S",
+      "file-types": [
+        "S",
+        "asm",
+        "s"
+      ]
+    }
+  ]
 }
