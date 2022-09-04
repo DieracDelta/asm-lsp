@@ -9,9 +9,6 @@ test_label_3:
 ---
 
 (source_file
-  (label
-    (identifier))
-  (label
-    (identifier))
-  (label
-    (identifier)))
+  (label)
+  (label)
+  (label))

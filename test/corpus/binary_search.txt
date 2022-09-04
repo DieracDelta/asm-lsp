@@ -1,0 +1,1271 @@
+====
+Integration Test - Binary Search
+====
+binarySearch:                           # @binarySearch
+        addi    sp, sp, -32
+        sw      ra, 28(sp)                      # 4-byte Folded Spill
+        sw      s0, 24(sp)                      # 4-byte Folded Spill
+        addi    s0, sp, 32
+        sw      a0, -16(s0)
+        sw      a1, -20(s0)
+        sw      a2, -24(s0)
+        sw      a3, -28(s0)
+        lw      a0, -24(s0)
+        lw      a1, -20(s0)
+        blt     a0, a1, .LBB0_6
+        j       .LBB0_1
+.LBB0_1:
+        lw      a0, -20(s0)
+        lw      a1, -24(s0)
+        sub     a1, a1, a0
+        srli    a2, a1, 31
+        add     a1, a1, a2
+        srai    a1, a1, 1
+        add     a0, a0, a1
+        sw      a0, -32(s0)
+        lw      a0, -16(s0)
+        lw      a1, -32(s0)
+        slli    a1, a1, 2
+        add     a0, a0, a1
+        lw      a0, 0(a0)
+        lw      a1, -28(s0)
+        bne     a0, a1, .LBB0_3
+        j       .LBB0_2
+.LBB0_2:
+        lw      a0, -32(s0)
+        sw      a0, -12(s0)
+        j       .LBB0_7
+.LBB0_3:
+        lw      a0, -16(s0)
+        lw      a1, -32(s0)
+        slli    a1, a1, 2
+        add     a0, a0, a1
+        lw      a1, 0(a0)
+        lw      a0, -28(s0)
+        bge     a0, a1, .LBB0_5
+        j       .LBB0_4
+.LBB0_4:
+        lw      a0, -16(s0)
+        lw      a1, -20(s0)
+        lw      a2, -32(s0)
+        addi    a2, a2, -1
+        lw      a3, -28(s0)
+        call    binarySearch
+        sw      a0, -12(s0)
+        j       .LBB0_7
+.LBB0_5:
+        lw      a0, -16(s0)
+        lw      a1, -32(s0)
+        addi    a1, a1, 1
+        lw      a2, -24(s0)
+        lw      a3, -28(s0)
+        call    binarySearch
+        sw      a0, -12(s0)
+        j       .LBB0_7
+.LBB0_6:
+        li      a0, -1
+        sw      a0, -12(s0)
+        j       .LBB0_7
+.LBB0_7:
+        lw      a0, -12(s0)
+        lw      ra, 28(sp)                      # 4-byte Folded Reload
+        lw      s0, 24(sp)                      # 4-byte Folded Reload
+        addi    sp, sp, 32
+        ret
+main:                                   # @main
+        addi    sp, sp, -48
+        sw      ra, 44(sp)                      # 4-byte Folded Spill
+        sw      s0, 40(sp)                      # 4-byte Folded Spill
+        addi    s0, sp, 48
+        li      a1, 0
+        sw      a1, -12(s0)
+        lui     a0, %hi(.L__const.main.arr)
+        addi    a2, a0, %lo(.L__const.main.arr)
+        lw      a3, 16(a2)
+        sw      a3, -16(s0)
+        lw      a3, 12(a2)
+        sw      a3, -20(s0)
+        lw      a3, 8(a2)
+        sw      a3, -24(s0)
+        lw      a2, 4(a2)
+        sw      a2, -28(s0)
+        lw      a0, %lo(.L__const.main.arr)(a0)
+        sw      a0, -32(s0)
+        li      a0, 5
+        sw      a0, -36(s0)
+        li      a0, 10
+        sw      a0, -40(s0)
+        lw      a0, -36(s0)
+        addi    a2, a0, -1
+        lw      a3, -40(s0)
+        addi    a0, s0, -32
+        call    binarySearch
+        sw      a0, -44(s0)
+        lw      a0, -44(s0)
+        li      a1, -1
+        bne     a0, a1, .LBB1_2
+        j       .LBB1_1
+.LBB1_1:
+        lui     a0, %hi(.L.str)
+        addi    a0, a0, %lo(.L.str)
+        call    printf
+        j       .LBB1_3
+.LBB1_2:
+        lw      a1, -44(s0)
+        lui     a0, %hi(.L.str.1)
+        addi    a0, a0, %lo(.L.str.1)
+        call    printf
+        j       .LBB1_3
+.LBB1_3:
+        li      a0, 0
+        lw      ra, 44(sp)                      # 4-byte Folded Reload
+        lw      s0, 40(sp)                      # 4-byte Folded Reload
+        addi    sp, sp, 48
+        ret
+.L__const.main.arr:
+        .word   2                               # 0x2
+        .word   3                               # 0x3
+        .word   4                               # 0x4
+        .word   10                              # 0xa
+        .word   40                              # 0x28
+
+.L.str:
+        .asciz  "Element is not present in array"
+
+.L.str.1:
+        .asciz  "Element is present at index %d"
+
+---
+(source_file
+  (label)
+  (comment)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (comment)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (comment)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (label)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (label)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (label)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (label)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (label)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (label)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (label)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (comment)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (comment)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id))
+  (label)
+  (comment)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (comment)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (comment)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (relocation
+        (reloc_symbol
+          (identifier))
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (relocation
+        (reloc_symbol
+          (identifier))
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (relocation
+        (reloc_symbol
+          (identifier))
+        (identifier)
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (label)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (relocation
+        (reloc_symbol
+          (identifier))
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (relocation
+        (reloc_symbol
+          (identifier))
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (label)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (relocation
+        (reloc_symbol
+          (identifier))
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (relocation
+        (reloc_symbol
+          (identifier))
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier))))
+  (label)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (comment)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_parens
+        (constant
+          (constant_dec))
+        (operand_no_parens
+          (identifier)))))
+  (comment)
+  (instruction
+    (instr_id)
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (operand_no_parens
+        (identifier)))
+    (operand
+      (constant
+        (constant_dec))))
+  (instruction
+    (instr_id))
+  (label)
+  (directive
+    (directive_id)
+    (constant
+      (constant_dec)))
+  (comment)
+  (directive
+    (directive_id)
+    (constant
+      (constant_dec)))
+  (comment)
+  (directive
+    (directive_id)
+    (constant
+      (constant_dec)))
+  (comment)
+  (directive
+    (directive_id)
+    (constant
+      (constant_dec)))
+  (comment)
+  (directive
+    (directive_id)
+    (constant
+      (constant_dec)))
+  (comment)
+  (label)
+  (directive
+    (directive_id)
+    (directive_arg))
+  (label)
+  (directive
+    (directive_id)
+    (directive_arg)))

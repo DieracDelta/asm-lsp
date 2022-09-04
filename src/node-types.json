@@ -1,6 +1,114 @@
 [
   {
-    "type": "label",
+    "type": "constant",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "constant_dec",
+          "named": true
+        },
+        {
+          "type": "constant_hex",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "constant_hex",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "constant",
+          "named": true
+        },
+        {
+          "type": "directive_arg",
+          "named": true
+        },
+        {
+          "type": "directive_id",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "directive_arg",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "instruction",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "instr_id",
+          "named": true
+        },
+        {
+          "type": "operand",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "operand",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "constant",
+          "named": true
+        },
+        {
+          "type": "operand_no_parens",
+          "named": true
+        },
+        {
+          "type": "operand_parens",
+          "named": true
+        },
+        {
+          "type": "relocation",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "operand_no_parens",
     "named": true,
     "fields": {},
     "children": {
@@ -15,6 +123,63 @@
     }
   },
   {
+    "type": "operand_parens",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "constant",
+          "named": true
+        },
+        {
+          "type": "operand_no_parens",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "reloc_symbol",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "relocation",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "constant",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "reloc_symbol",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "source_file",
     "named": true,
     "fields": {},
@@ -22,6 +187,14 @@
       "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "directive",
+          "named": true
+        },
+        {
+          "type": "instruction",
+          "named": true
+        },
         {
           "type": "label",
           "named": true
@@ -34,11 +207,51 @@
     "named": false
   },
   {
-    "type": ":",
+    "type": "%",
     "named": false
   },
   {
+    "type": "(",
+    "named": false
+  },
+  {
+    "type": ")",
+    "named": false
+  },
+  {
+    "type": ",",
+    "named": false
+  },
+  {
+    "type": "-",
+    "named": false
+  },
+  {
+    "type": "0x",
+    "named": false
+  },
+  {
+    "type": "comment",
+    "named": true
+  },
+  {
+    "type": "constant_dec",
+    "named": true
+  },
+  {
+    "type": "directive_id",
+    "named": true
+  },
+  {
     "type": "identifier",
+    "named": true
+  },
+  {
+    "type": "instr_id",
+    "named": true
+  },
+  {
+    "type": "label",
     "named": true
   }
 ]

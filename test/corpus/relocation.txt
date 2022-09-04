@@ -1,0 +1,44 @@
+==================
+Relocation Test
+==================
+
+lw      a0, %lo(.L__const.main.arr)(a0)
+lui     a0, %hi(.L__const.main.arr)
+addi    a2, a0, %lo(.L__const.main.arr)
+
+---
+    (source_file
+      (instruction
+        (instr_id)
+        (operand
+          (operand_no_parens
+            (identifier)))
+        (operand
+          (relocation
+            (reloc_symbol
+              (identifier))
+            (identifier)
+            (identifier))))
+      (instruction
+        (instr_id)
+        (operand
+          (operand_no_parens
+            (identifier)))
+        (operand
+          (relocation
+            (reloc_symbol
+              (identifier))
+            (identifier))))
+      (instruction
+        (instr_id)
+        (operand
+          (operand_no_parens
+            (identifier)))
+        (operand
+          (operand_no_parens
+            (identifier)))
+        (operand
+          (relocation
+            (reloc_symbol
+              (identifier))
+            (identifier)))))
