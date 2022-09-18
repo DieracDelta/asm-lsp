@@ -38,8 +38,10 @@
                 tree-sitter
                 # for using wasm playground
                 emscripten
+                just
                 nodejs_latest
-              ];
+              ] ++
+              pkgs.lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.Security pkgs.libiconv darwin.apple_sdk.frameworks.SystemConfiguration ];
           };
         }
     );

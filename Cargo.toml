@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-        "tree-sitter-riscv-asm",
+        "tree-sitter-riscvasm",
         "lsp"
 ]
