@@ -30,8 +30,10 @@
         in {
           devShell = pkgs.mkShell {
             inherit CARGO_TARGET_DIR;
+            LD_LIBRARY_PATH = "${pkgs.zlib}/lib";
             buildInputs =
               with pkgs; [
+                zlib
                 # for rust bindings
                 fenixStable fenix.packages.${system}.rust-analyzer
                 # tree-sitter-cli
