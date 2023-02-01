@@ -8,6 +8,7 @@ use nll::nll_todo::nll_todo;
 use ropey::{Error, Rope};
 use tokio::sync::RwLock;
 pub type JsonResult<T> = tower_lsp::jsonrpc::Result<T>;
+use tower_lsp::jsonrpc::ErrorCode;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer, LspService, Server};
 
@@ -403,6 +404,20 @@ impl LanguageServer for Backend {
     }
 
     async fn hover(&self, params: HoverParams) -> JsonResult<Option<Hover>> {
+        let uri = params.text_document_position_params.text_document.uri;
+        let position = params.text_document_position_params.position;
+
+        let Some(mut doc) =  self.document_map.get_mut(uri)
+        else {
+            self.client
+                .show_message(MessageType::ERROR, format!("Couldn't find URI {uri}"))
+                .await;
+            return Err(tower_lsp::jsonrpc::Error::new(ErrorCode::ParseError));
+        };
+
+
+
+        // TODO drop this. It's filler to show how easy hover is.
         let markdown = MarkupContent {
             kind: MarkupKind::Markdown,
             value: [
