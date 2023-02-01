@@ -14,7 +14,6 @@
     utils.lib.eachDefaultSystem (system:
     let
         fenixStable = fenix.packages.${system}.stable.withComponents [ "cargo" "clippy" "rust-src" "rustc" "rustfmt" "llvm-tools-preview" ];
-        CARGO_TARGET_DIR = "target_dirs/nix_rustc";
         rustOverlay = final: prev:
           {
             rustc = fenixStable;
@@ -29,7 +28,9 @@
         };
         in {
           devShell = pkgs.mkShell {
-            inherit CARGO_TARGET_DIR;
+            shellHook = ''
+              export CARGO_TARGET_DIR="$(git rev-parse --show-toplevel)/target_dirs/nix_rustc";
+            '';
             LD_LIBRARY_PATH = "${pkgs.zlib}/lib";
             buildInputs =
               with pkgs; [
