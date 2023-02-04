@@ -131,11 +131,14 @@ impl LanguageServer for Backend {
     }
 
     async fn did_change(&self, mut params: DidChangeTextDocumentParams) {
-        self.client
-            .show_message(MessageType::ERROR, format!("DID change: {:?}", params))
-            .await;
 
         let uri = params.text_document.uri.as_str();
+
+        // TODO this is how to create an error (and other diagnostics)
+        // let diags = vec![
+        //     Diagnostic::new_simple(Range::new(Position {line: 4, character: 1}, Position { line: 4, character: 5}), "hello world error".to_string()),
+        // ];
+        // self.client.publish_diagnostics(params.text_document.uri.clone(), diags, None).await;
 
         let Some(mut doc) =  self.document_map.get_mut(uri)
         else {
@@ -230,7 +233,7 @@ impl LanguageServer for Backend {
         let uri = params.text_document_position_params.text_document.uri.to_string();
         let position = params.text_document_position_params.position;
 
-        let Some(mut doc) =  self.document_map.get_mut(&uri)
+        let Some(doc) =  self.document_map.get_mut(&uri)
         else {
             self.client
                 .show_message(MessageType::ERROR, format!("Couldn't find URI {uri}"))
