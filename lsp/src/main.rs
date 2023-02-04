@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::{env, io, path::PathBuf, sync::Once};
 
+pub mod doc;
 pub mod utils;
 
 use dashmap::DashMap;
@@ -12,43 +13,14 @@ use tower_lsp::jsonrpc::ErrorCode;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer, LspService, Server};
 
+use doc::doc_node;
+
 use snafu::{ResultExt, Snafu, Whatever};
 use tracing::{error, info};
 use tree_sitter::{InputEdit, Point, Tree, TreeCursor};
 use tree_sitter::{Language, LanguageError, Parser};
 use tree_sitter_riscvasm::NODE_TYPES;
-
-type ByteIndex = usize;
-
-type CharIndex = usize;
-
-fn point_to_position(p: Point) -> Position {
-    Position {
-        line: p.row as u32,
-        character: u32::checked_sub(p.column as u32, 1).unwrap_or_else(|| 0),
-    }
-}
-
-/// NOTE `Point` is one indexed
-/// `Position` is zero indexed
-fn position_to_point(p: Position) -> Point {
-    let col = p.character as usize + 1;
-    Point {
-        row: p.line as usize,
-        column: col,
-    }
-}
-
-fn count_newlines(s: &str) -> usize {
-    s.as_bytes().iter().filter(|&&c| c == b'\n').count()
-}
-
-pub fn position_info(position: Position, rope: &Rope) -> Result<(CharIndex, ByteIndex), Error> {
-    let line_char_offset = rope.try_line_to_char(position.line as usize)?;
-    let total_char_offset = line_char_offset + position.character as usize;
-    rope.try_char_to_byte(total_char_offset)
-        .map(|x| (total_char_offset, x))
-}
+use utils::{position_info, position_to_point};
 
 struct Backend {
     client: Client,
@@ -80,7 +52,6 @@ impl Backend {
         }
     }
 }
-
 
 #[derive(Debug, Snafu)]
 pub enum LspError {
@@ -131,7 +102,6 @@ impl LanguageServer for Backend {
     }
 
     async fn did_change(&self, mut params: DidChangeTextDocumentParams) {
-
         let uri = params.text_document.uri.as_str();
 
         // TODO this is how to create an error (and other diagnostics)
@@ -230,7 +200,11 @@ impl LanguageServer for Backend {
     }
 
     async fn hover(&self, params: HoverParams) -> JsonResult<Option<Hover>> {
-        let uri = params.text_document_position_params.text_document.uri.to_string();
+        let uri = params
+            .text_document_position_params
+            .text_document
+            .uri
+            .to_string();
         let position = params.text_document_position_params.position;
 
         let Some(doc) =  self.document_map.get_mut(&uri)
@@ -241,27 +215,15 @@ impl LanguageServer for Backend {
             return Err(tower_lsp::jsonrpc::Error::new(ErrorCode::ParseError));
         };
 
-
         let mut cursor = doc.1.walk();
 
-        // node.
+        let docs = doc_node(&mut cursor, &position_to_point(position));
 
-        // node.children(curs)
+        // let node_kinds = walk_node_kinds(&mut cursor, &position_to_point(position));
 
-
-        let node_kinds = walk_node_kinds(&mut cursor, &position_to_point(position));
-
-
-        // TODO drop this. It's filler to show how easy hover is.
         let markdown = MarkupContent {
             kind: MarkupKind::Markdown,
-            value: [
-                format!(
-                    "{node_kinds:?}"
-                    // "kind: {kind:?} \nsexp: {sexp:?}, next: {:?}, {:?}", cursor.node().kind(), cursor.node().to_sexp()
-                ),
-            ]
-            .join("\n"),
+            value: docs,
         };
         Ok(Some(Hover {
             contents: HoverContents::Markup(markdown),
@@ -306,9 +268,7 @@ async fn main() -> Result<(), LspError> {
         document_map: DashMap::new(),
     })
     .finish();
-    error!("BEFORE WOO");
     Server::new(stdin, stdout, socket).serve(service).await;
-    error!("WOO");
 
     Ok(())
 }

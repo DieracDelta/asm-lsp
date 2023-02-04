@@ -22,3 +22,9 @@ lint:
   echo Linting…
   cargo clippy --release --workspace --examples --bins --tests
   cargo fmt
+
+fmt:
+  cargo fmt
+
+fix:
+  cargo fix --allow-unstaged --allow-staged
