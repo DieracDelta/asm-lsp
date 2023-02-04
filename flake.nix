@@ -14,6 +14,7 @@
     utils.lib.eachDefaultSystem (system:
     let
         fenixStable = fenix.packages.${system}.stable.withComponents [ "cargo" "clippy" "rust-src" "rustc" "rustfmt" "llvm-tools-preview" ];
+        fenixCI = fenix.packages.${system}.stable.withComponents [ "cargo" "clippy" "rust-src" "rustc" "rustfmt" ];
         rustOverlay = final: prev:
           {
             rustc = fenixStable;
@@ -54,7 +55,7 @@
                 with pkgs; [
                   zlib
                   # for rust bindings
-                  fenixStable
+                  fenixCI
                   # tree-sitter-cli
                   tree-sitter
                   # for using wasm playground
