@@ -35,8 +35,11 @@
       ]
     },
     "label": {
-      "type": "PATTERN",
-      "value": "[a-zA-Z0-9_.]+:"
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "[a-zA-Z0-9_.]+:"
+      }
     },
     "directive": {
       "type": "SEQ",
@@ -99,8 +102,11 @@
       ]
     },
     "directive_id": {
-      "type": "PATTERN",
-      "value": "[.][a-zA-Z0-9_.]+"
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "[.][a-zA-Z0-9_.]+"
+      }
     },
     "directive_arg": {
       "type": "CHOICE",
@@ -184,12 +190,18 @@
       ]
     },
     "identifier": {
-      "type": "PATTERN",
-      "value": "[a-zA-Z_.][a-zA-Z0-9_.]*"
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "[a-zA-Z_.][a-zA-Z0-9_.]*"
+      }
     },
     "instr_id": {
-      "type": "PATTERN",
-      "value": "[a-zA-Z_][a-zA-Z0-9_.]*"
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "[a-zA-Z_][a-zA-Z0-9_.]*"
+      }
     },
     "constant": {
       "type": "SEQ",

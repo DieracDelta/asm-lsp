@@ -14,13 +14,27 @@ use tower_lsp::{Client, LanguageServer, LspService, Server};
 
 use snafu::{ResultExt, Snafu, Whatever};
 use tracing::{error, info};
-use tree_sitter::{InputEdit, Point, Tree};
+use tree_sitter::{InputEdit, Point, Tree, TreeCursor};
 use tree_sitter::{Language, LanguageError, Parser};
 use tree_sitter_riscvasm::NODE_TYPES;
 
 type ByteIndex = usize;
 
 type CharIndex = usize;
+
+fn point_to_position(p: Point) -> Position {
+    Position {
+        line: p.row as u32,
+        character: p.column as u32,
+    }
+}
+
+fn position_to_point(p: Position) -> Point {
+    Point {
+        row: p.line as usize,
+        column: p.character as usize,
+    }
+}
 
 fn count_newlines(s: &str) -> usize {
     s.as_bytes().iter().filter(|&&c| c == b'\n').count()
@@ -213,16 +227,8 @@ impl LanguageServer for Backend {
                     start_byte,
                     old_end_byte,
                     new_end_byte,
-                    start_position: Point {
-                        // ok this is probably broken on 32 bit machines
-                        // That's ok, I don't really mind
-                        row: range.start.line as usize,
-                        column: range.start.character as usize,
-                    },
-                    old_end_position: Point {
-                        row: range.end.line as usize,
-                        column: range.end.character as usize,
-                    },
+                    start_position: position_to_point(range.start),
+                    old_end_position: position_to_point(range.end),
                     new_end_position: {
                         Point {
                             row: new_end_line,
@@ -261,134 +267,6 @@ impl LanguageServer for Backend {
         }
     }
 
-    // async fn did_change(&self, mut params: DidChangeTextDocumentParams) {
-    //     self.client
-    //         .show_message(MessageType::ERROR, format!("DID change: {:?}", params))
-    //         .await;
-    //
-    //     if let Some(change) = params.content_changes.pop() {
-    //          let edit =
-    //              if let Some(range) = change.range {
-    //                  // TODO this is gonna need to be merged...
-    //                  let Some(mut doc) = self.document_map.get_mut(params.text_document.uri.as_str().clone())
-    //                  else {
-    //                      return;
-    //                  };
-    //
-    //                  let _ = doc.0.try_line_to_byte(range.start.line as usize);
-    //                  let _ = doc.0.try_line_to_char(range.start.line as usize);
-    //                  /// append chars
-    //                  /// construct end position
-    //
-    //
-    //                  InputEdit {
-    //                      start_byte: nll_todo(),
-    //                      old_end_byte: nll_todo(),
-    //                      new_end_byte: nll_todo(),
-    //                      start_position:
-    //                          Point {
-    //                              // ok this is probably broken on 32 bit machines
-    //                              // That's ok, I don't really mind
-    //                              row: range.start.line as usize,
-    //                              column: range.start.character as usize
-    //                          },
-    //                      old_end_position:
-    //                          Point {
-    //                              row: range.end.line as usize,
-    //                              column: range.end.character as usize
-    //                      },
-    //                      new_end_position:
-    //                      {
-    //                          let start = range.start.line as usize;
-    //                          let num_additional_lines = count_newlines(&change.text);
-    //                          let column =
-    //                              if num_additional_lines == 0 {
-    //                                  range.start.character as usize + change.text.len()
-    //                              } else {
-    //                                  change.text.len() - (2 + change.text.rfind("\n").unwrap())
-    //                              };
-    //                          Point {
-    //                              row: start + num_additional_lines,
-    //                              column
-    //                          }
-    //                      }
-    //                  }
-    //              } else {
-    //                  InputEdit {
-    //                      start_byte: 0,
-    //                      old_end_byte: 0,
-    //                      new_end_byte: change.text.bytes().len(),
-    //                      start_position: Point {
-    //                          row: 0,
-    //                          column: 0,
-    //                      },
-    //                      old_end_position: Point {
-    //                          row:0,
-    //                          column:0
-    //                      },
-    //                      new_end_position: Point {
-    //                          row: 0,
-    //                          column: 0,
-    //                      }
-    //                  }
-    //              };
-    //     }
-    //
-    //     // let edits: Vec<InputEdit> = Vec::new();
-    //
-    //     // for change in params.content_changes {
-    //     //     let change_len = change.text.len();
-    //     //     let change_len_bytes = change.text.bytes().len();
-    //     // }
-    //
-    //
-    //     // for change in params.content_changes {
-    //     //     let change_len = change.text.len();
-    //     //     let change_len_bytes = change.text.bytes().len();
-    //     //     let edit =
-    //     //         if let Some(change) = change.range {
-    //     //             let edit = InputEdit {
-    //     //                 start_byte: nll_todo(),
-    //     //                 old_end_byte: nll_todo(),
-    //     //                 new_end_byte: nll_todo(),
-    //     //                 start_position: nll_todo(),
-    //     //                 old_end_position: nll_todo(),
-    //     //                 new_end_position: nll_todo()
-    //     //             };
-    //     //
-    //     //         } else {
-    //     //             let edit = InputEdit {
-    //     //                 start_byte: 0,
-    //     //                 old_end_byte: 0,
-    //     //                 new_end_byte: change_len_bytes,
-    //     //                 start_position: Point {
-    //     //                     row: 0,
-    //     //                     column: 0,
-    //     //                 },
-    //     //                 old_end_position: Point {
-    //     //                     row:0,
-    //     //                     column:0
-    //     //                 },
-    //     //                 new_end_position: Point {
-    //     //                     row: 0,
-    //     //                     column: 0,
-    //     //                 }
-    //     //             };
-    //     //
-    //     //         };
-    //     //
-    //
-    //     // self.on_change(TextDocumentItem {
-    //     //     language_id: "none".to_string(),
-    //     //     uri: params.text_document.uri,
-    //     //     text: params.content_changes.pop(),
-    //     //     version: params.text_document.version,
-    //     // })
-    //     // .await
-    //
-    //     // }
-    // }
-
     async fn completion(&self, params: CompletionParams) -> JsonResult<Option<CompletionResponse>> {
         let uri = params.text_document_position.text_document.uri;
         let position = params.text_document_position.position;
@@ -404,10 +282,10 @@ impl LanguageServer for Backend {
     }
 
     async fn hover(&self, params: HoverParams) -> JsonResult<Option<Hover>> {
-        let uri = params.text_document_position_params.text_document.uri;
+        let uri = params.text_document_position_params.text_document.uri.to_string();
         let position = params.text_document_position_params.position;
 
-        let Some(mut doc) =  self.document_map.get_mut(uri)
+        let Some(mut doc) =  self.document_map.get_mut(&uri)
         else {
             self.client
                 .show_message(MessageType::ERROR, format!("Couldn't find URI {uri}"))
@@ -416,16 +294,24 @@ impl LanguageServer for Backend {
         };
 
 
+        let mut cursor = doc.1.walk();
+
+        // node.
+
+        // node.children(curs)
+
+
+        let node_kinds = walk_node_kinds(&mut cursor, &position_to_point(position));
+
 
         // TODO drop this. It's filler to show how easy hover is.
         let markdown = MarkupContent {
             kind: MarkupKind::Markdown,
             value: [
-                "# Hello header",
-                "Hello world",
-                "```typescript",
-                "someCode();",
-                "```",
+                format!(
+                    "{node_kinds:?}"
+                    // "kind: {kind:?} \nsexp: {sexp:?}, next: {:?}, {:?}", cursor.node().kind(), cursor.node().to_sexp()
+                ),
             ]
             .join("\n"),
         };
@@ -444,6 +330,15 @@ impl LanguageServer for Backend {
     async fn shutdown(&self) -> JsonResult<()> {
         Ok(())
     }
+}
+
+pub fn walk_node_kinds(cursor: &mut TreeCursor, p: &Point) -> Vec<String> {
+    let cur_node = cursor.node();
+    let mut kinds = Vec::new();
+    while let Some(_) = cursor.goto_first_child_for_point(p.clone()) {
+        kinds.push(cursor.node().kind().to_string());
+    }
+    kinds
 }
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]

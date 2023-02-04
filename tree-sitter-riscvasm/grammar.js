@@ -25,21 +25,21 @@ module.exports = grammar({
 
     _root: $ => seq(choice($.label, $.instruction, $.directive), '\n'),
 
-    label: $ => /[a-zA-Z0-9_.]+:/,
+    label: $ => token(/[a-zA-Z0-9_.]+:/),
 
     directive: $ => seq($.directive_id, optional(seq(choice($.directive_arg, $.constant), repeat(seq(OP_DELIMITER, choice($.directive_arg, $.constant)))))),
 
-    directive_id: $ => /[.][a-zA-Z0-9_.]+/,
+    directive_id: $ => token(/[.][a-zA-Z0-9_.]+/),
 
     directive_arg: $ => choice($.identifier, /".*"/),
 
     relocation: $ => seq('%', $.reloc_symbol, '(', choice($.identifier, $.constant), ')', optional(seq('(', choice($.identifier, $.constant), ')'))),
 
     // identifier must begin with letter or dot
-    identifier: $ => /[a-zA-Z_.][a-zA-Z0-9_.]*/,
+    identifier: $ => token(/[a-zA-Z_.][a-zA-Z0-9_.]*/),
 
     // identifier must not begin with dot
-    instr_id: $ => /[a-zA-Z_][a-zA-Z0-9_.]*/,
+    instr_id: $ => token(/[a-zA-Z_][a-zA-Z0-9_.]*/),
 
     constant: $ => seq(optional("-"), choice($.constant_hex, $.constant_dec)),
 
