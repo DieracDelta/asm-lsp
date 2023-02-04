@@ -25,14 +25,17 @@ type CharIndex = usize;
 fn point_to_position(p: Point) -> Position {
     Position {
         line: p.row as u32,
-        character: p.column as u32,
+        character: u32::checked_sub(p.column as u32, 1).unwrap_or_else(|| 0),
     }
 }
 
+/// NOTE `Point` is one indexed
+/// `Position` is zero indexed
 fn position_to_point(p: Position) -> Point {
+    let col = p.character as usize + 1;
     Point {
         row: p.line as usize,
-        column: p.character as usize,
+        column: col,
     }
 }
 
@@ -76,63 +79,8 @@ impl Backend {
                 .await;
         }
     }
-
-    async fn on_change(&self, uri: String, ie @ InputEdit { .. }: InputEdit) {
-        if let Some(mut doc) = self.document_map.get_mut(&uri) {
-            // by defn this is cheap
-            let rope = &mut doc.0.clone();
-            let ast = &mut doc.1;
-            let mut parser = self.parser.write().await;
-            Tree::edit(ast, &ie);
-            let tree = parser.parse_with(
-                &mut |offset, _position| {
-                    // logn time, not bad
-                    // allowd to return 0
-                    let (chunk, chunk_byte_idx, _, _) = rope.chunk_at_byte(offset);
-                    &chunk.as_bytes()[offset - chunk_byte_idx..]
-                },
-                Some(&doc.1),
-            );
-
-            if let Some(tree) = tree {
-                doc.1 = tree;
-            } else {
-                self.client
-                    .show_message(
-                        MessageType::ERROR,
-                        format!("INTERNAL ERROR: FAILED TO PARSE"),
-                    )
-                    .await;
-            }
-        } else {
-            self.client
-                .show_message(
-                    MessageType::ERROR,
-                    format!("INTERNAL ERROR: COULDNT FIND TREE DESPITE HAVING OPENED"),
-                )
-                .await;
-        }
-        // let rope = ropey::Rope::from_str(&params.text);
-        // // TODO should probably use the old_tree
-        // let tree = self.parser.write().await.parse(params.text, None);
-        // if let Some(tree) = tree {
-        //     // tree.edit(edit)
-        //     self.document_map
-        //         .insert(params.uri.to_string(), (rope.clone(), tree.clone()));
-        //     // let (ast, errors, semantic_tokens) = parse(&params.text);
-        //     todo()
-        // } else {
-        //     self.client
-        //         .show_message(
-        //             MessageType::ERROR,
-        //             format!("INTERNAL ERROR: was unable to determine language or timed out"),
-        //         )
-        //         .await;
-        // }
-    }
 }
 
-//
 
 #[derive(Debug, Snafu)]
 pub enum LspError {
@@ -170,9 +118,6 @@ impl LanguageServer for Backend {
         })
     }
 
-    //LSP[efm] OPENED change: DidOpenTextDocumentParams { text_document: TextDocumentItem { uri: Url { scheme: "file", cannot_be_a_base: false, username: "", password: None, host: None, port: No
-    // ne, path: "/Users/jrestivo/dev/tree-sitter/tree-sitter-riscv-asm/example_files/example.S", query: None, fragment: None }, language_id: "asm", version: 0, text: "hello\nhello\nhi\nhello\nhi
-    // \n" } }
     async fn did_open(&self, params: DidOpenTextDocumentParams) {
         self.client
             .show_message(MessageType::ERROR, "file opened!")
