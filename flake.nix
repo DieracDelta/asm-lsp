@@ -46,6 +46,23 @@
               ] ++
               pkgs.lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.Security pkgs.libiconv darwin.apple_sdk.frameworks.SystemConfiguration ];
           };
-        }
-    );
+          devShells = {
+            # stripped down deps for faster CI
+            ciShell = pkgs.mkShell {
+              LD_LIBRARY_PATH = "${pkgs.zlib}/lib";
+              buildInputs =
+                with pkgs; [
+                  zlib
+                  # for rust bindings
+                  fenixStable
+                  # tree-sitter-cli
+                  tree-sitter
+                  # for using wasm playground
+                  emscripten
+                  just
+                  nodejs_latest
+                ];
+            };
+          };
+    });
 }
