@@ -48,6 +48,14 @@
               pkgs.lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.Security pkgs.libiconv darwin.apple_sdk.frameworks.SystemConfiguration ];
           };
           devShells = {
+            opcodeShell = pkgs.mkShell {
+              buildInputs = [
+                (pkgs.python3.withPackages (p: with p; [
+                  pyyaml
+                  # other python packages
+                ]))
+              ];
+            };
             # stripped down deps for faster CI
             ciShell = pkgs.mkShell {
               LD_LIBRARY_PATH = "${pkgs.zlib}/lib";

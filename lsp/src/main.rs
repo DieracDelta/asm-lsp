@@ -217,7 +217,11 @@ impl LanguageServer for Backend {
 
         let mut cursor = doc.1.walk();
 
-        let docs = doc_node(&mut cursor, &position_to_point(position));
+        let point = position_to_point(position);
+
+        let _ = cursor.goto_first_child_for_point(point);
+
+        let (docs, _cursor) = doc_node(&mut cursor, &point);
 
         // let node_kinds = walk_node_kinds(&mut cursor, &position_to_point(position));
 
