@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt::Display};
 
 use nll::nll_todo::nll_todo;
 use ropey::Rope;
-use tree_sitter::{Point, TreeCursor, Node};
+use tree_sitter::{Node, Point, TreeCursor};
 
 pub enum SyntaxNode {
     Constant,
@@ -53,7 +53,11 @@ impl TryFrom<&str> for SyntaxNode {
 }
 
 /// generate documentation for a node
-pub fn doc_node<'a: 'b, 'b>(cursor: &'b mut TreeCursor<'a>, point: &Point, src: &Rope) -> (String, &'b mut TreeCursor<'a>) {
+pub fn doc_node<'a: 'b, 'b>(
+    cursor: &'b mut TreeCursor<'a>,
+    point: &Point,
+    src: &Rope,
+) -> (String, &'b mut TreeCursor<'a>) {
     let node = cursor.node();
     match SyntaxNode::try_from(node.kind()) {
         Ok(node_kind) => match node_kind {
@@ -69,17 +73,9 @@ pub fn doc_node<'a: 'b, 'b>(cursor: &'b mut TreeCursor<'a>, point: &Point, src: 
                     cursor = moved_cursor;
                 }
                 (total_docs, cursor)
-            },
-            SyntaxNode::ConstantHex => {
-                (r#"
-                    Hexadecimal constant
-                "#.to_string(), cursor)
-            },
-            SyntaxNode::ConstantDec => {
-                (r#"
-                    Decimal constant
-                "#.to_string(), cursor)
-            },
+            }
+            SyntaxNode::ConstantHex => ("Hexadecimal constant".to_string(), cursor),
+            SyntaxNode::ConstantDec => ("Decimal constant".to_string(), cursor),
             SyntaxNode::Directive => nll_todo(),
             SyntaxNode::DirectiveArg => nll_todo(),
             // TODO combine these brancnes if they're going to
@@ -88,51 +84,32 @@ pub fn doc_node<'a: 'b, 'b>(cursor: &'b mut TreeCursor<'a>, point: &Point, src: 
                 let result = cursor.goto_first_child_for_point(*point);
                 assert!(result.is_some());
                 doc_node(cursor, point, src)
-            },
+            }
             SyntaxNode::Operand => {
                 let result = cursor.goto_first_child_for_point(*point);
                 assert!(result.is_some());
                 doc_node(cursor, point, src)
-            },
+            }
             SyntaxNode::OperandNoParens => {
                 let result = cursor.goto_first_child_for_point(*point);
                 assert!(result.is_some());
                 doc_node(cursor, point, src)
-            },
+            }
             SyntaxNode::OperandParens => {
                 let result = cursor.goto_first_child_for_point(*point);
                 assert!(result.is_some());
                 doc_node(cursor, point, src)
-            },
-            SyntaxNode::RelocSymbol => {
-                (r#"
-                    # Relocation symbol
-                "#.to_string(), cursor)
-            },
-            SyntaxNode::Relocation => {
-                (r#"
-                    # Relocation identifier
-                "#.to_string(), cursor)
-            },
+            }
+            SyntaxNode::RelocSymbol => ("# Relocation symbol".to_string(), cursor),
+            SyntaxNode::Relocation => ("# Relocation identifier".to_string(), cursor),
             SyntaxNode::SourceFile => ("nothing to see here".to_string(), cursor),
-            SyntaxNode::Comment =>
-                (r#"
-                    # Comment
-                "#.to_string(), cursor)
-            ,
-            SyntaxNode::DirectiveId => {
-                (r#"
-                    # Directive identifier
-                "#.to_string(), cursor)
-            },
+            SyntaxNode::Comment => ("# Comment".to_string(), cursor),
+            SyntaxNode::DirectiveId => ("# Directive identifier\n".to_string(), cursor),
             SyntaxNode::Identifier => {
                 let range = node.byte_range();
                 let identifier = src.byte_slice(range);
                 let mut result =
-                    format!(r#"
-                        # Register
-                            Unknown register {identifier:?}
-                    "#).to_string();
+                    format!("# Register\n\tUnknown register {identifier:?} \n ").to_string();
 
                 if !node.has_error() {
                     if let Some(register) = get_rv32i_map().get(&identifier.to_string()) {
@@ -140,17 +117,9 @@ pub fn doc_node<'a: 'b, 'b>(cursor: &'b mut TreeCursor<'a>, point: &Point, src: 
                     }
                 }
                 (result, cursor)
-            },
-            SyntaxNode::InstrId =>
-                (r#"
-                    # Instruction Id
-                "#.to_string(), cursor)
-            ,
-            SyntaxNode::Label => {
-                (r#"
-                    # Label
-                "#.to_string(), cursor)
-            },
+            }
+            SyntaxNode::InstrId => ("# Instruction Id".to_string(), cursor),
+            SyntaxNode::Label => ("# Label".to_string(), cursor),
         },
         Err(err) => (err, cursor),
     }
@@ -158,7 +127,7 @@ pub fn doc_node<'a: 'b, 'b>(cursor: &'b mut TreeCursor<'a>, point: &Point, src: 
 
 #[derive(std::fmt::Debug)]
 pub enum RegisterWidth {
-    XLEN
+    XLEN,
 }
 
 pub type RegisterName = String;
@@ -166,17 +135,16 @@ pub type RegisterName = String;
 pub struct Register {
     width: RegisterWidth,
     name: RegisterName,
-    docs: String
+    docs: String,
 }
 
 impl Display for Register {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, r#"
-            # Register
-                - Name: {:?},
-                - Width: {:?},
-            # Usage:
-                {:?}"#, self.name, self.width, self.docs)
+        write!(
+            f,
+            "# Register\n\t- Name: {:?}\n\t- Width: {:?},\n# Usage:\n\t{:?}",
+            self.name, self.width, self.docs
+        )
     }
 }
 
