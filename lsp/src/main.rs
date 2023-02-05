@@ -3,7 +3,10 @@ use std::{env, io, path::PathBuf, sync::Once};
 
 pub mod doc;
 pub mod utils;
+pub mod errors;
+pub mod completion;
 
+use completion::complete_node;
 use dashmap::DashMap;
 use nll::nll_todo::nll_todo;
 use ropey::{Error, Rope};
@@ -132,7 +135,6 @@ impl LanguageServer for Backend {
                 let len_chars = rope.len_chars();
                 let len_bytes = rope.len_bytes();
                 rope.try_insert(start_char, &change.text).unwrap();
-                let added_chars = rope.len_chars() - len_chars;
                 let added_bytes = rope.len_bytes() - len_bytes;
 
                 // FIXME possible OBOB
@@ -186,17 +188,32 @@ impl LanguageServer for Backend {
     }
 
     async fn completion(&self, params: CompletionParams) -> JsonResult<Option<CompletionResponse>> {
-        let uri = params.text_document_position.text_document.uri;
-        let position = params.text_document_position.position;
-        let completions = || -> Option<Vec<CompletionItem>> {
-            // step 1: get the token line
-            // step 2: get token itself
-            // step 3: is it an operator? Or an operand?
-            // step 4: match against lookup table
-            // let rope = self.document_map.get(&uri.to_string())?;
-            Some(vec![])
-        }();
-        Ok(completions.map(CompletionResponse::Array))
+        let uri = params.text_document_position.text_document.uri.as_str();
+
+        let Some(mut doc) = self.document_map.get_mut(uri)
+        else {
+            return Err(tower_lsp::jsonrpc::Error::internal_error());
+        };
+
+        let mut cursor = doc.1.walk();
+
+        let point = position_to_point(params.text_document_position.position);
+
+        let _ = cursor.goto_first_child_for_point(point);
+
+        let (completions, _cursor) = complete_node(&mut cursor, &point, &doc.0);
+
+        nll_todo()
+
+        // let completions = || -> Option<Vec<CompletionItem>> {
+        //     // step 1: get the token line
+        //     // step 2: get token itself
+        //     // step 3: is it an operator? Or an operand?
+        //     // step 4: match against lookup table
+        //     // let rope = self.document_map.get(&uri.to_string())?;
+        //     Some(vec![])
+        // }();
+        // Ok(completions.map(CompletionResponse::Array))
     }
 
     async fn hover(&self, params: HoverParams) -> JsonResult<Option<Hover>> {
