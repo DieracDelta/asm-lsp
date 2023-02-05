@@ -221,7 +221,7 @@ impl LanguageServer for Backend {
 
         let _ = cursor.goto_first_child_for_point(point);
 
-        let (docs, _cursor) = doc_node(&mut cursor, &point);
+        let (docs, _cursor) = doc_node(&mut cursor, &point, &doc.0);
 
         // let node_kinds = walk_node_kinds(&mut cursor, &position_to_point(position));
 
