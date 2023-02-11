@@ -1,8 +1,11 @@
-use std::{collections::HashMap, fmt::Display};
+use std::{collections::{HashMap, HashSet}, fmt::Display};
 
 use nll::nll_todo::nll_todo;
 use ropey::Rope;
 use tree_sitter::{Node, Point, TreeCursor};
+#[macro_use]
+use lazy_static::lazy_static;
+
 
 pub enum SyntaxNode {
     Constant,
@@ -91,9 +94,17 @@ pub fn doc_node<'a: 'b, 'b>(
                 doc_node(cursor, point, src)
             }
             SyntaxNode::OperandNoParens => {
-                let result = cursor.goto_first_child_for_point(*point);
-                assert!(result.is_some());
-                doc_node(cursor, point, src)
+                let range = node.byte_range();
+                let identifier = src.byte_slice(range);
+                let mut result =
+                    format!("# high Register\n\tUnknown register {identifier:?} \n ").to_string();
+
+                if !node.has_error() {
+                    if let Some(register) = RV32I_REGISTER_MAP.get(&identifier.to_string()) {
+                        result = format!("{}", register);
+                    }
+                }
+                (result, cursor)
             }
             SyntaxNode::OperandParens => {
                 let result = cursor.goto_first_child_for_point(*point);
@@ -106,17 +117,7 @@ pub fn doc_node<'a: 'b, 'b>(
             SyntaxNode::Comment => ("# Comment".to_string(), cursor),
             SyntaxNode::DirectiveId => ("# Directive identifier\n".to_string(), cursor),
             SyntaxNode::Identifier => {
-                let range = node.byte_range();
-                let identifier = src.byte_slice(range);
-                let mut result =
-                    format!("# Register\n\tUnknown register {identifier:?} \n ").to_string();
-
-                if !node.has_error() {
-                    if let Some(register) = get_rv32i_map().get(&identifier.to_string()) {
-                        result = format!("{}", register);
-                    }
-                }
-                (result, cursor)
+                ("error?".to_string(), cursor)
             }
             SyntaxNode::InstrId => ("# Instruction Id".to_string(), cursor),
             SyntaxNode::Label => ("# Label".to_string(), cursor),
@@ -125,13 +126,14 @@ pub fn doc_node<'a: 'b, 'b>(
     }
 }
 
-#[derive(std::fmt::Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum RegisterWidth {
     XLEN,
 }
 
 pub type RegisterName = String;
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Register {
     width: RegisterWidth,
     name: RegisterName,
@@ -148,180 +150,222 @@ impl Display for Register {
     }
 }
 
-pub fn get_rv32i_map() -> HashMap<RegisterName, Register> {
-    let mut map = HashMap::new();
-    for register in get_rv32i_registers() {
-        map.insert(register.name.clone(), register);
-    }
-    map
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Instruction {
+    name: String,
+    num_operands: usize,
+    docs: String,
 }
 
+impl Display for Instruction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "# Instruction\n\t- Name: {:?}\n\t- Num Operands: {:?},\n# Usage:\n\t{:?}",
+            self.name, self.num_operands, self.docs
+        )
+    }
+}
+
+// static ref RV32I_INSTRUCTIONS: Vec<Instruction> = get_rv32i_instructions();
+lazy_static! {
+    pub static ref RV32I_REGISTERS: HashSet<Register> = {
+        vec![
+            Register {
+                name: "x0".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x1".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x2".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x3".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x4".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x5".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x6".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x7".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x8".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x9".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x10".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x11".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x12".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x13".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x14".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x15".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x16".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x17".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x18".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x19".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x20".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x21".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x22".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x23".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x24".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x25".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x26".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x27".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x28".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x29".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x30".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "x31".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            Register {
+                name: "pc".to_string(),
+                width: RegisterWidth::XLEN,
+                docs: "".to_string(),
+            },
+            ].into_iter().collect()
+    };
+    pub static ref RV32I_REGISTER_MAP: HashMap<RegisterName, Register> = {
+        let mut map = HashMap::new();
+        for register in RV32I_REGISTERS.iter() {
+            map.insert(register.name.clone(), register.clone());
+        }
+        map
+    };
+    pub static ref RV32I_INSTRUCTIONS: HashSet<Instruction> = {
+        vec![
+            Instruction {
+                name: "add".to_string(),
+                num_operands: 3,
+                docs: "".to_string(),
+            }
+        ].into_iter().collect()
+    };
+    pub static ref RV32I_INSTRUCTION_MAP: HashMap<String, Instruction> = {
+        let mut map = HashMap::new();
+        for instruction in RV32I_INSTRUCTIONS.iter() {
+            map.insert(instruction.name.clone(), instruction.clone());
+        }
+        map
+    };
+
+}
+
+
+
 pub fn get_rv32i_registers() -> Vec<Register> {
-    vec![
-        Register {
-            name: "x0".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x1".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x2".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x3".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x4".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x5".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x6".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x7".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x8".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x9".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x10".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x11".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x12".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x13".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x14".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x15".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x16".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x17".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x18".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x19".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x20".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x21".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x22".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x23".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x24".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x25".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x26".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x27".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x28".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x29".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x30".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "x31".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-        Register {
-            name: "pc".to_string(),
-            width: RegisterWidth::XLEN,
-            docs: "".to_string(),
-        },
-    ]
+    nll_todo()
 }

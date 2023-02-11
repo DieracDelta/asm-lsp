@@ -15,8 +15,9 @@ snafu = "0.7.4"
 tower-lsp = "0.18.0"
 tokio = {version = "1.25.0", default-features = false, features = ["rt", "tracing", "io-std", "macros", "rt-multi-thread" ] }
 dashmap = "5.4.0"
-ropey = "1.5.1"
+ropey = "1.6.0"
 nll = { git = "https://github.com/EspressoSystems/nll" }
+lazy_static = "1.4.0"
 
 [profile.release]
 incremental = true

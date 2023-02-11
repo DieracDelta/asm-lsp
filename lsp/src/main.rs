@@ -203,7 +203,6 @@ impl LanguageServer for Backend {
 
         let (completions, _cursor) = complete_node(&mut cursor, &point, &doc.0);
 
-        nll_todo()
 
         // let completions = || -> Option<Vec<CompletionItem>> {
         //     // step 1: get the token line
@@ -213,7 +212,7 @@ impl LanguageServer for Backend {
         //     // let rope = self.document_map.get(&uri.to_string())?;
         //     Some(vec![])
         // }();
-        // Ok(completions.map(CompletionResponse::Array))
+        Ok(Some(CompletionResponse::Array(completions)))
     }
 
     async fn hover(&self, params: HoverParams) -> JsonResult<Option<Hover>> {
@@ -292,4 +291,15 @@ async fn main() -> Result<(), LspError> {
     Server::new(stdin, stdout, socket).serve(service).await;
 
     Ok(())
+}
+
+mod tests {
+    #[test]
+    pub fn dummy_test(){
+        let a = 5;
+        let b = 10;
+
+
+        println!("Hello World");
+    }
 }
