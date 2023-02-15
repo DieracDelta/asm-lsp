@@ -1,11 +1,13 @@
-use std::{collections::{HashMap, HashSet}, fmt::Display};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Display,
+};
 
 use nll::nll_todo::nll_todo;
 use ropey::Rope;
 use tree_sitter::{Node, Point, TreeCursor};
 #[macro_use]
 use lazy_static::lazy_static;
-
 
 pub enum SyntaxNode {
     Constant,
@@ -116,9 +118,7 @@ pub fn doc_node<'a: 'b, 'b>(
             SyntaxNode::SourceFile => ("nothing to see here".to_string(), cursor),
             SyntaxNode::Comment => ("# Comment".to_string(), cursor),
             SyntaxNode::DirectiveId => ("# Directive identifier\n".to_string(), cursor),
-            SyntaxNode::Identifier => {
-                ("error?".to_string(), cursor)
-            }
+            SyntaxNode::Identifier => ("error?".to_string(), cursor),
             SyntaxNode::InstrId => ("# Instruction Id".to_string(), cursor),
             SyntaxNode::Label => ("# Label".to_string(), cursor),
         },
@@ -152,9 +152,9 @@ impl Display for Register {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Instruction {
-    name: String,
-    num_operands: usize,
-    docs: String,
+    pub name: String,
+    pub num_operands: usize,
+    pub docs: String,
 }
 
 impl Display for Instruction {
@@ -167,7 +167,6 @@ impl Display for Instruction {
     }
 }
 
-// static ref RV32I_INSTRUCTIONS: Vec<Instruction> = get_rv32i_instructions();
 lazy_static! {
     pub static ref RV32I_REGISTERS: HashSet<Register> = {
         vec![
@@ -336,7 +335,9 @@ lazy_static! {
                 width: RegisterWidth::XLEN,
                 docs: "".to_string(),
             },
-            ].into_iter().collect()
+        ]
+        .into_iter()
+        .collect()
     };
     pub static ref RV32I_REGISTER_MAP: HashMap<RegisterName, Register> = {
         let mut map = HashMap::new();
@@ -348,11 +349,23 @@ lazy_static! {
     pub static ref RV32I_INSTRUCTIONS: HashSet<Instruction> = {
         vec![
             Instruction {
-                name: "add".to_string(),
+                name: "addi".to_string(),
                 num_operands: 3,
-                docs: "".to_string(),
-            }
-        ].into_iter().collect()
+                docs: "Add ".to_string(),
+            },
+            Instruction {
+                name: "sd".to_string(),
+                num_operands: 3,
+                docs: "store double ".to_string(),
+            },
+            Instruction {
+                name: "csrrw".to_string(),
+                num_operands: 3,
+                docs: "Write to a csr".to_string(),
+            },
+        ]
+        .into_iter()
+        .collect()
     };
     pub static ref RV32I_INSTRUCTION_MAP: HashMap<String, Instruction> = {
         let mut map = HashMap::new();
@@ -361,11 +374,26 @@ lazy_static! {
         }
         map
     };
-
 }
 
+impl Instruction {
+    pub fn new(name: String, num_operands: usize, docs: String) -> Instruction {
+        Instruction {
+            name,
+            num_operands,
+            docs,
+        }
+    }
 
+    pub fn get_fn_sig(&self) -> String {
+        if self.num_operands == 0 {
+            return "".to_string();
+        }
 
-pub fn get_rv32i_registers() -> Vec<Register> {
-    nll_todo()
+        let mut return_str = "a".to_string();
+        for _ in 1..self.num_operands {
+            return_str.push_str(" -> a");
+        }
+        return_str
+    }
 }

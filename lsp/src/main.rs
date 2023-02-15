@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::{env, io, path::PathBuf, sync::Once};
 
-pub mod doc;
-pub mod utils;
-pub mod errors;
 pub mod completion;
+pub mod doc;
+pub mod errors;
+pub mod utils;
 
 use completion::complete_node;
 use dashmap::DashMap;
@@ -203,7 +203,6 @@ impl LanguageServer for Backend {
 
         let (completions, _cursor) = complete_node(&mut cursor, &point, &doc.0);
 
-
         // let completions = || -> Option<Vec<CompletionItem>> {
         //     // step 1: get the token line
         //     // step 2: get token itself
@@ -295,10 +294,9 @@ async fn main() -> Result<(), LspError> {
 
 mod tests {
     #[test]
-    pub fn dummy_test(){
+    pub fn dummy_test() {
         let a = 5;
         let b = 10;
-
 
         println!("Hello World");
     }
