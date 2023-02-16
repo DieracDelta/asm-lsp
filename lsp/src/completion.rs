@@ -1,4 +1,3 @@
-use nll::nll_todo::nll_todo;
 use ropey::Rope;
 use tower_lsp::lsp_types::{
     CompletionItem, CompletionItemKind, Documentation, MarkupContent, MarkupKind,
@@ -6,14 +5,16 @@ use tower_lsp::lsp_types::{
 use tracing::error;
 use tree_sitter::{Point, TreeCursor};
 
-use crate::doc::{SyntaxNode, RV32I_INSTRUCTIONS, RV32I_INSTRUCTION_MAP};
+use crate::{doc::{SyntaxNode, RV32I_INSTRUCTIONS, RV32I_INSTRUCTION_MAP}, ClientWrapper};
 
 pub fn complete_node<'a: 'b, 'b>(
+    client: ClientWrapper,
     cursor: &'b mut TreeCursor<'a>,
     point: &Point,
     src: &Rope,
 ) -> (Vec<CompletionItem>, &'b mut TreeCursor<'a>) {
     let node = cursor.node();
+    client.notify_client(format!("COMPLETE NODE {:?}", node.kind()));
     match SyntaxNode::try_from(node.kind()) {
         Ok(node_kind) => match node_kind {
             SyntaxNode::Constant => (vec![], cursor),
@@ -24,24 +25,26 @@ pub fn complete_node<'a: 'b, 'b>(
             // TODO combine these brancnes if they're going to
             // continue to have the same logic
             SyntaxNode::Instruction => {
+                client.notify_client(format!("WE ARE AN INSTRUCTION"));
                 let result = cursor.goto_first_child_for_point(*point);
                 assert!(result.is_some());
-                complete_node(cursor, point, src)
+                complete_node(client, cursor, point, src)
             }
             SyntaxNode::Operand => {
+                client.notify_client(format!("WE ARE AN OPERAND"));
                 let result = cursor.goto_first_child_for_point(*point);
                 assert!(result.is_some());
-                complete_node(cursor, point, src)
+                complete_node(client, cursor, point, src)
             }
             SyntaxNode::OperandNoParens => {
                 let result = cursor.goto_first_child_for_point(*point);
                 assert!(result.is_some());
-                complete_node(cursor, point, src)
+                complete_node(client, cursor, point, src)
             }
             SyntaxNode::OperandParens => {
                 let result = cursor.goto_first_child_for_point(*point);
                 assert!(result.is_some());
-                complete_node(cursor, point, src)
+                complete_node(client, cursor, point, src)
             }
             SyntaxNode::RelocSymbol => (vec![], cursor),
             SyntaxNode::Relocation => (vec![], cursor),
@@ -49,6 +52,7 @@ pub fn complete_node<'a: 'b, 'b>(
             SyntaxNode::Comment => (vec![], cursor),
             SyntaxNode::DirectiveId => (vec![], cursor),
             SyntaxNode::Identifier => {
+                client.notify_client(format!("WE ARE AN IDENTIFIER"));
                 // error!?
                 // let range = node.byte_range();
                 // let identifier = src.byte_slice(range);
@@ -65,35 +69,20 @@ pub fn complete_node<'a: 'b, 'b>(
             SyntaxNode::InstrId => {
                 let range = node.byte_range();
                 let identifier = src.byte_slice(range).to_string();
-                error!("identifier: {:?}", identifier);
+                client.notify_client(format!("identifier {identifier:?}"));
                 let completion_itmes = get_instr_id_completions(identifier);
                 (completion_itmes, cursor)
             }
-            SyntaxNode::Label => (vec![], cursor),
+            SyntaxNode::Label => {
+                client.notify_client(format!("WE ARE LABEL"));
+                (vec![], cursor)
+            },
         },
-        Err(err) => (vec![], cursor),
+        Err(err) => {
+            client.notify_client(format!("OH NO THERE IS AN ERROR {err:?}"));
+            (vec![], cursor)
+        },
     }
-    // (vec![
-    //     CompletionItem {
-    //         insert_text_mode: None,
-    //         tags: None,
-    //         label: "hello".to_string(),
-    //         kind: None,
-    //         detail: None,
-    //         documentation: None,
-    //         deprecated: None,
-    //         preselect: None,
-    //         sort_text: None,
-    //         filter_text: None,
-    //         insert_text: Some("Yeet!".to_string()),
-    //         insert_text_format: None,
-    //         text_edit: None,
-    //         additional_text_edits: None,
-    //         commit_characters: None,
-    //         command: None,
-    //         data: None,
-    //     },
-    // ], cursor)
 }
 
 fn get_instr_id_completions(partial_identifier: String) -> Vec<CompletionItem> {
@@ -115,10 +104,10 @@ fn get_instr_id_completions(partial_identifier: String) -> Vec<CompletionItem> {
                 value: instruction.docs.clone(),
             })),
             deprecated: None,
-            preselect: None,
+            preselect: Some(true),
             sort_text: None,
             filter_text: None,
-            insert_text: Some(instruction.name.clone()),
+            insert_text: None,
             insert_text_format: None,
             text_edit: None,
             additional_text_edits: None,

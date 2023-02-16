@@ -10,8 +10,10 @@ use completion::complete_node;
 use dashmap::DashMap;
 use nll::nll_todo::nll_todo;
 use ropey::{Error, Rope};
+use tokio::spawn;
 use tokio::sync::RwLock;
 pub type JsonResult<T> = tower_lsp::jsonrpc::Result<T>;
+use tokio::task::spawn_local;
 use tower_lsp::jsonrpc::ErrorCode;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer, LspService, Server};
@@ -25,6 +27,16 @@ use tree_sitter::{Language, LanguageError, Parser};
 use tree_sitter_riscvasm::NODE_TYPES;
 use utils::{position_info, position_to_point};
 
+pub struct ClientWrapper(Client);
+
+impl std::ops::Deref for ClientWrapper {
+    type Target = Client;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 struct Backend {
     client: Client,
     // TODO dunno if this actually needs to be locked
@@ -35,7 +47,20 @@ struct Backend {
     // semantic_token_map: DashMap<String, Vec<>>,
 }
 
+impl ClientWrapper {
+    /// cursed!?
+    pub fn notify_client(&self, text: String) {
+        let client = (*self).clone();
+        spawn(
+            async move {
+                client.show_message(MessageType::ERROR, text).await
+            });
+    }
+}
+
 impl Backend {
+
+
     async fn create_new(&self, uri: String, doc: String) {
         let rope = Rope::from_str(&doc);
         let tree = self.parser.write().await.parse(doc, None);
@@ -190,7 +215,7 @@ impl LanguageServer for Backend {
     async fn completion(&self, params: CompletionParams) -> JsonResult<Option<CompletionResponse>> {
         let uri = params.text_document_position.text_document.uri.as_str();
 
-        let Some(mut doc) = self.document_map.get_mut(uri)
+        let Some(doc) = self.document_map.get_mut(uri)
         else {
             return Err(tower_lsp::jsonrpc::Error::internal_error());
         };
@@ -201,16 +226,9 @@ impl LanguageServer for Backend {
 
         let _ = cursor.goto_first_child_for_point(point);
 
-        let (completions, _cursor) = complete_node(&mut cursor, &point, &doc.0);
+        let (completions, _cursor) = complete_node(ClientWrapper(self.client.clone()), &mut cursor, &point, &doc.0);
+        ClientWrapper(self.client.clone()).notify_client(format!("came up with completions: {completions:?}"));
 
-        // let completions = || -> Option<Vec<CompletionItem>> {
-        //     // step 1: get the token line
-        //     // step 2: get token itself
-        //     // step 3: is it an operator? Or an operand?
-        //     // step 4: match against lookup table
-        //     // let rope = self.document_map.get(&uri.to_string())?;
-        //     Some(vec![])
-        // }();
         Ok(Some(CompletionResponse::Array(completions)))
     }
 
@@ -224,9 +242,7 @@ impl LanguageServer for Backend {
 
         let Some(doc) =  self.document_map.get_mut(&uri)
         else {
-            self.client
-                .show_message(MessageType::ERROR, format!("Couldn't find URI {uri}"))
-                .await;
+            ClientWrapper(self.client.clone()).notify_client(format!("Couldn't find URI {uri}"));
             return Err(tower_lsp::jsonrpc::Error::new(ErrorCode::ParseError));
         };
 
