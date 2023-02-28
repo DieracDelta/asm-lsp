@@ -349,9 +349,9 @@ lazy_static! {
     pub static ref RV32I_INSTRUCTIONS: HashSet<Instruction> = {
         vec![
             Instruction {
-                name: "addinstallgentoo".to_string(),
+                name: "ld".to_string(),
                 num_operands: 3,
-                docs: "Add ".to_string(),
+                docs: "Load double ".to_string(),
             },
             Instruction {
                 name: "sd".to_string(),
@@ -359,12 +359,7 @@ lazy_static! {
                 docs: "store double ".to_string(),
             },
             Instruction {
-                name: "csrrwyeet".to_string(),
-                num_operands: 3,
-                docs: "Write to a csr".to_string(),
-            },
-            Instruction {
-                name: "helloworldohyesthisisathing".to_string(),
+                name: "csrrw".to_string(),
                 num_operands: 3,
                 docs: "Write to a csr".to_string(),
             },

@@ -132,6 +132,7 @@ impl LanguageServer for Backend {
     async fn did_change(&self, mut params: DidChangeTextDocumentParams) {
         let uri = params.text_document.uri.as_str();
 
+
         // TODO this is how to create an error (and other diagnostics)
         // let diags = vec![
         //     Diagnostic::new_simple(Range::new(Position {line: 4, character: 1}, Position { line: 4, character: 5}), "hello world error".to_string()),
@@ -149,6 +150,7 @@ impl LanguageServer for Backend {
         let rope = &mut doc.0;
 
         if let Some(change) = params.content_changes.pop() {
+                ClientWrapper(self.client.clone()).notify_client(format!("file changed! {:?}", change.text));
             if let Some(range) = change.range {
                 // FIXME bad error handling. Do it better.
                 let (start_char, start_byte) = position_info(range.start, &rope).unwrap();
@@ -188,6 +190,7 @@ impl LanguageServer for Backend {
 
                 let rope = &doc.0;
 
+                error!("PARSING INPUT {change:?}");
                 let tree = parser.parse_with(
                     &mut |offset, _position| {
                         // logn time, not bad
@@ -201,6 +204,7 @@ impl LanguageServer for Backend {
                 if let Some(tree) = tree {
                     doc.1 = tree;
                 } else {
+                    error!("OOF FAIL");
                     self.client
                         .show_message(
                             MessageType::ERROR,
@@ -223,8 +227,17 @@ impl LanguageServer for Backend {
         let mut cursor = doc.1.walk();
 
         let point = position_to_point(params.text_document_position.position);
+        error!("POINT IS: {point:?}");
+
+        // we're always slightly ahead of where we want to start analysis
+        let point = Point {
+            column: point.column - 1,
+            ..point
+        };
+
 
         let _ = cursor.goto_first_child_for_point(point);
+        // cursor.goto_next_sibling();
 
         let (completions, _cursor) = complete_node(ClientWrapper(self.client.clone()), &mut cursor, &point, &doc.0);
         ClientWrapper(self.client.clone()).notify_client(format!("came up with completions: {completions:?}"));
@@ -278,7 +291,7 @@ impl LanguageServer for Backend {
 }
 
 pub fn walk_node_kinds(cursor: &mut TreeCursor, p: &Point) -> Vec<String> {
-    let cur_node = cursor.node();
+    let _cur_node = cursor.node();
     let mut kinds = Vec::new();
     while let Some(_) = cursor.goto_first_child_for_point(p.clone()) {
         kinds.push(cursor.node().kind().to_string());
@@ -288,7 +301,8 @@ pub fn walk_node_kinds(cursor: &mut TreeCursor, p: &Point) -> Vec<String> {
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 async fn main() -> Result<(), LspError> {
-    tracing_subscriber::fmt().try_init().unwrap();
+    let writer = std::fs::File::create("./LOGLOG").unwrap();
+    tracing_subscriber::fmt().with_writer(writer).init();
 
     let stdin = tokio::io::stdin();
     let stdout = tokio::io::stdout();
@@ -311,9 +325,6 @@ async fn main() -> Result<(), LspError> {
 mod tests {
     #[test]
     pub fn dummy_test() {
-        let a = 5;
-        let b = 10;
-
         println!("Hello World");
     }
 }

@@ -15,6 +15,7 @@ pub fn complete_node<'a: 'b, 'b>(
 ) -> (Vec<CompletionItem>, &'b mut TreeCursor<'a>) {
     let node = cursor.node();
     client.notify_client(format!("COMPLETE NODE {:?}", node.kind()));
+
     match SyntaxNode::try_from(node.kind()) {
         Ok(node_kind) => match node_kind {
             SyntaxNode::Constant => (vec![], cursor),
@@ -25,13 +26,14 @@ pub fn complete_node<'a: 'b, 'b>(
             // TODO combine these brancnes if they're going to
             // continue to have the same logic
             SyntaxNode::Instruction => {
-                client.notify_client(format!("WE ARE AN INSTRUCTION"));
+                let range = node.range();
+                error!("WE ARE AN INSTRUCTION {range:?}");
                 let result = cursor.goto_first_child_for_point(*point);
                 assert!(result.is_some());
                 complete_node(client, cursor, point, src)
             }
             SyntaxNode::Operand => {
-                client.notify_client(format!("WE ARE AN OPERAND"));
+                error!("WE ARE AN OPERAND");
                 let result = cursor.goto_first_child_for_point(*point);
                 assert!(result.is_some());
                 complete_node(client, cursor, point, src)
@@ -52,16 +54,16 @@ pub fn complete_node<'a: 'b, 'b>(
             SyntaxNode::Comment => (vec![], cursor),
             SyntaxNode::DirectiveId => (vec![], cursor),
             SyntaxNode::Identifier => {
-                client.notify_client(format!("WE ARE AN IDENTIFIER"));
+                error!("WE ARE AN IDENTIFIER");
                 // error!?
                 // let range = node.byte_range();
                 // let identifier = src.byte_slice(range);
                 // let mut result =
-                //     format!("# Register\n\tUnknown register {identifier:?} \n ").to_string();
+                //     ("# Register\n\tUnknown register {identifier:?} \n ").to_string();
                 //
                 // if !node.has_error() {
                 //     if let Some(register) = get_rv32i_map().get(&identifier.to_string()) {
-                //         result = format!("{}", register);
+                //         result = ("{}", register);
                 //     }
                 // }
                 (vec![], cursor)
@@ -69,18 +71,22 @@ pub fn complete_node<'a: 'b, 'b>(
             SyntaxNode::InstrId => {
                 let range = node.byte_range();
                 let identifier = src.byte_slice(range).to_string();
-                client.notify_client(format!("identifier {identifier:?}"));
-                let completion_itmes = get_instr_id_completions(identifier);
-                (completion_itmes, cursor)
+                error!("identifier {identifier:?}");
+                let completion_items = get_instr_id_completions(identifier);
+                (completion_items, cursor)
             }
             SyntaxNode::Label => {
-                client.notify_client(format!("WE ARE LABEL"));
+                error!("WE ARE LABEL");
                 (vec![], cursor)
             },
         },
         Err(err) => {
-            client.notify_client(format!("OH NO THERE IS AN ERROR {err:?}"));
-            (vec![], cursor)
+            error!("OH NO THERE IS AN ERROR {err:?}");
+            if cursor.goto_next_sibling() {
+                complete_node(client, cursor, point, src)
+            } else {
+                (vec![], cursor)
+            }
         },
     }
 }
