@@ -10,50 +10,60 @@ const PREC = {
   ternary: 3,
 }
 
-const OP_DELIMITER = ",";
-
 module.exports = grammar({
   name: 'riscvasm',
 
   extras: $ => [
     $.comment,
-    $._whitespace,
+    /\s/,
   ],
 
+  word: $ => $.identifier,
+
   rules: {
-    source_file: $ => repeat($._root),
+    source_file: $ => repeat(seq(
+      choice($.label, $.instruction, $.directive),
+      '\n',
+    )),
 
-    _root: $ => seq(choice($.label, $.instruction, $.directive), '\n'),
+    directive: $ => seq(
+      $.directive_id,
+      optional(seq(
+        choice($.directive_arg, $.constant),
+        repeat(seq(",", choice($.directive_arg, $.constant)))
+      )),
+    ),
 
-    label: $ => token(/[a-zA-Z0-9_.]+:/),
-
-    directive: $ => seq($.directive_id, optional(seq(choice($.directive_arg, $.constant), repeat(seq(OP_DELIMITER, choice($.directive_arg, $.constant)))))),
-
-    directive_id: $ => token(/[.][a-zA-Z0-9_.]+/),
+    directive_id: _ => token(/[.][a-zA-Z0-9_.]+/),
 
     directive_arg: $ => choice($.identifier, /".*"/),
 
-    relocation: $ => seq('%', $.reloc_symbol, '(', choice($.identifier, $.constant), ')', optional(seq('(', choice($.identifier, $.constant), ')'))),
-
-    // identifier must begin with letter or dot
-    identifier: $ => token(/[a-zA-Z_.][a-zA-Z0-9_.]*/),
-
-    // identifier must not begin with dot
-    instr_id: $ => token(/[a-zA-Z_][a-zA-Z0-9_.]*/),
+    relocation: $ => seq(
+      '%',
+      field('relocation', $.identifier),
+      '(',
+      choice($.identifier, $.constant),
+      ')',
+      optional(seq('(', choice($.identifier, $.constant), ')')),
+    ),
 
     constant: $ => seq(optional("-"), choice($.constant_hex, $.constant_dec)),
 
-    constant_hex: $ => seq("0x", /[0-9A-Fa-f]+/),
+    constant_hex: _ => seq("0x", /[0-9A-Fa-f]+/),
 
-    constant_dec: $ => /[0-9]+/,
+    constant_dec: _ => /[0-9]+/,
 
-    reloc_symbol: $ => $.identifier,
-
-    instruction: $ => seq($.instr_id,
-      optional(
-        seq($.operand, optional(
-          seq(OP_DELIMITER, $.operand,
-            optional(seq(OP_DELIMITER, $.operand))))))),
+    instruction: $ => seq(
+      $.instr_id,
+      optional(seq(
+        $.operand,
+        optional(seq(
+          ",",
+          $.operand,
+          optional(seq(",", $.operand)),
+        )),
+      )),
+    ),
 
     operand: $ => prec.right(choice($.operand_parens, $.operand_no_parens, $.relocation, $.constant)),
 
@@ -61,8 +71,15 @@ module.exports = grammar({
 
     operand_no_parens: $ => $.identifier,
 
+    label: _ => token(/[a-zA-Z0-9_.]+:/),
 
-    comment: $ => token(choice(
+    // identifier must begin with letter or dot
+    identifier: _ => token(/[a-zA-Z_.][a-zA-Z0-9_.]*/),
+
+    // identifier must not begin with dot
+    instr_id: _ => token(/[a-zA-Z_][a-zA-Z0-9_.]*/),
+
+    comment: _ => token(choice(
       seq('#', /.*/),
       seq('//', /.*/),
       seq(
@@ -70,11 +87,8 @@ module.exports = grammar({
         /[^*]*\*+([^/*][^*]*\*+)*/,
           '/'
         )
-      )),
+    )),
 
-      _whitespace: $ => token(/\s/),
-
-    //
     // pseudo_instuction: $ => "",
     //
     //

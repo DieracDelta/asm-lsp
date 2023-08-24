@@ -136,6 +136,7 @@ main:                                   # @main
         .asciz  "Element is present at index %d"
 
 ---
+
 (source_file
   (label)
   (comment)
@@ -851,8 +852,7 @@ main:                                   # @main
         (identifier)))
     (operand
       (relocation
-        (reloc_symbol
-          (identifier))
+        (identifier)
         (identifier))))
   (instruction
     (instr_id)
@@ -864,8 +864,7 @@ main:                                   # @main
         (identifier)))
     (operand
       (relocation
-        (reloc_symbol
-          (identifier))
+        (identifier)
         (identifier))))
   (instruction
     (instr_id)
@@ -962,8 +961,7 @@ main:                                   # @main
         (identifier)))
     (operand
       (relocation
-        (reloc_symbol
-          (identifier))
+        (identifier)
         (identifier)
         (identifier))))
   (instruction
@@ -1118,8 +1116,7 @@ main:                                   # @main
         (identifier)))
     (operand
       (relocation
-        (reloc_symbol
-          (identifier))
+        (identifier)
         (identifier))))
   (instruction
     (instr_id)
@@ -1131,8 +1128,7 @@ main:                                   # @main
         (identifier)))
     (operand
       (relocation
-        (reloc_symbol
-          (identifier))
+        (identifier)
         (identifier))))
   (instruction
     (instr_id)
@@ -1163,8 +1159,7 @@ main:                                   # @main
         (identifier)))
     (operand
       (relocation
-        (reloc_symbol
-          (identifier))
+        (identifier)
         (identifier))))
   (instruction
     (instr_id)
@@ -1176,8 +1171,7 @@ main:                                   # @main
         (identifier)))
     (operand
       (relocation
-        (reloc_symbol
-          (identifier))
+        (identifier)
         (identifier))))
   (instruction
     (instr_id)

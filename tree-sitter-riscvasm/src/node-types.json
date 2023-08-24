@@ -142,24 +142,20 @@
     }
   },
   {
-    "type": "reloc_symbol",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "relocation",
     "named": true,
-    "fields": {},
+    "fields": {
+      "relocation": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": true,
       "required": true,
@@ -170,10 +166,6 @@
         },
         {
           "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "reloc_symbol",
           "named": true
         }
       ]
