@@ -1,3 +1,7 @@
+/* eslint-disable-next-line spaced-comment */
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
+
 // TODO we also presumably want a parser for linker scripts...
 //
 // resources:
