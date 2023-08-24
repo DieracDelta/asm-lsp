@@ -1,12 +1,13 @@
 [package]
 name = "tree-sitter-riscvasm"
-description = "riscvasm grammar for the tree-sitter parsing library"
+description = "RISC-V Assembly grammar for tree-sitter"
 version = "0.0.1"
-keywords = ["incremental", "parsing", "riscvasm"]
+keywords = ["incremental", "parsing", "riscv", "riscvasm"]
 categories = ["parsing", "text-editors"]
-repository = "https://github.com/tree-sitter/tree-sitter-riscvasm"
-edition = "2018"
+repository = "https://github.com/asm-lsp/tree-sitter-riscvasm"
+edition = "2021"
 license = "MIT"
+autoexamples = false
 
 build = "bindings/rust/build.rs"
 include = [
@@ -20,7 +21,7 @@ include = [
 path = "bindings/rust/lib.rs"
 
 [dependencies]
-tree-sitter = "~0.20"
+tree-sitter = "~0.20.10"
 
 [build-dependencies]
-cc = "1.0"
+cc = "~1.0.83"
